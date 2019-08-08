@@ -48,6 +48,10 @@ return [
         ],
     ],
 
+    'jwt' => [
+        'expiration' => 900000, //15'
+    ],
+
     'zend-expressive' => [
         // Provide templates for the error handling middleware to use when
         // generating responses.

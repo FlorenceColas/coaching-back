@@ -1,22 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Common\Authentication;
 
-use Psr\Container\ContainerInterface;
-use Zend\Authentication\Adapter\AdapterInterface as AuthenticationAdapterInterface;
-use Zend\Authentication\AuthenticationService;
-use Zend\Authentication\AuthenticationServiceInterface;
-use Zend\Authentication\Storage\StorageInterface as AuthenticationStorageInterface;
+use Interop\Container\ContainerInterface;
+use Zend\ServiceManager\Factory\FactoryInterface;
 
-class AuthenticationServiceFactory
+class AuthenticationServiceFactory implements FactoryInterface
 {
-    public function __invoke(ContainerInterface $container): AuthenticationServiceInterface
+    public function __invoke(ContainerInterface $container, $requestedName, array $options = null): AuthenticationService
     {
-        $adapter = $container->get(AuthenticationAdapterInterface::class);
-        $storage = $container->get(AuthenticationStorageInterface::class);
+        $config = $container->get('config');
 
-        return new AuthenticationService($storage, $adapter);
+        return new AuthenticationService($config);
     }
 }

@@ -3,17 +3,16 @@
 namespace App\Common\Authentication;
 
 use Zend\Authentication\Adapter\AdapterInterface;
-use Zend\Authentication\AuthenticationService;
+use Zend\Authentication\AuthenticationService as ZendAuthenticationService;
 use Zend\Authentication\Adapter\DbTable\CredentialTreatmentAdapter;
-use Zend\Authentication\Storage\Session;
 use Zend\Db\Adapter\Adapter as DbAdapter;
 use Zend\Db\Sql\Join;
 use Zend\Db\Sql\Sql;
 
-class ZendAuthenticationService extends AuthenticationService implements AdapterInterface
+class AuthenticationService extends ZendAuthenticationService implements AdapterInterface
 {
-    const ROLE_ADMIN_WAREHOUSE = 'admin_warehouse';
-    const ROLE_GUEST_WAREHOUSE = 'guest_warehouse';
+    const ROLE_COACH   = 'coach';
+    const ROLE_ATHLETE = 'athelete';
 
     const USER_STATUS_BLOCKED  = 2;
     const USER_STATUS_DISABLED = 0;
@@ -43,27 +42,21 @@ class ZendAuthenticationService extends AuthenticationService implements Adapter
             'SHA2(CONCAT(salt,?), 512)'
         );
         $dbTableAuthAdapter->getDbSelect()->where('status = ' . self::USER_STATUS_ENABLED);
+
+        $this->setAdapter($dbTableAuthAdapter);
     }
 
-    public function authenticateUser($logon, $password)
+    public function authenticateUser(string $username, string $password): User
     {
-        if (empty($logon) or empty($password)) {
-            return [
-                'valid'  => false,
-                'result' => [
-                    'code'    => 999,
-                    'message' => ['The username and password are mandatory'],
-                ],
-            ];
-        }
-
         $this->getAdapter()
-            ->setIdentity($logon)
+            ->setIdentity($username)
             ->setCredential($password);
 
         $result = $this->authenticate();
 
-        if ($result->isValid()) {
+        if (!$result->isValid()) {
+            return null;
+        } else {
             $sql = new Sql($this->authAdapter);
             $select = $sql->select()
                 ->columns(
@@ -86,7 +79,7 @@ class ZendAuthenticationService extends AuthenticationService implements Adapter
                     ['key_label'],
                     Join::JOIN_LEFT
                 )
-                ->where(['username' => $logon]);
+                ->where(['username' => $username]);
 
             $statement = $sql->prepareStatementForSqlObject($select);
             $userRoles = iterator_to_array($statement->execute());
@@ -98,7 +91,7 @@ class ZendAuthenticationService extends AuthenticationService implements Adapter
 
             $userJwt = new User(
                 $this->config,
-                $logon,
+                $username,
                 [
                     'name' => $userRoles[0]['displayname'],
                     'uid'  => $userRoles[0]['id'],
@@ -110,52 +103,12 @@ class ZendAuthenticationService extends AuthenticationService implements Adapter
 
             $update = $sql->update('users')
                 ->set(['lastconnection' => (new \DateTime())->format('Y-m-d H:i:s')])
-                ->where(['username' => $logon]);
+                ->where(['username' => $username]);
 
             $statement = $sql->buildSqlString($update);
             $this->authAdapter->query($statement, DbAdapter::QUERY_MODE_EXECUTE);
 
-            return [
-                'valid'   => true,
-                'result' => [
-                    'code'    => $result->getCode(),
-                    'message' => $result->getMessages(),
-                ],
-            ];
-        } else {
-            return [
-                'valid'  => false,
-                'result' => [
-                    'code'    => $result->getCode(),
-                    'message' => $result->getMessages(),
-                ],
-            ];
+            return $userJwt;
         }
-    }
-
-    public function sessionIsValid()
-    {
-        return [true, []];
-    }
-
-    public function simulateAuthenticateUser($username)
-    {
-        $sql = new Sql($this->authAdapter);
-        $select = $sql->select()
-            ->columns(['password'])
-            ->from('users')
-            ->where(['username' => $username]);
-
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $user      = iterator_to_array($statement->execute());
-        $password  = $user[0]['password'] ?? '';
-
-        $this->getAdapter()
-            ->setIdentity($username)
-            ->setCredential($password);
-
-        $result = $this->authenticate();
-
-        return $result->isValid();
     }
 }

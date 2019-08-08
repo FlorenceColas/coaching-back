@@ -39,6 +39,7 @@
     },
     "require": {
         "php": "^7.1",
+        "firebase/php-jwt": "^5.0",
         "zendframework/zend-authentication": "^2.7",
         "zendframework/zend-component-installer": "^2.1.1",
         "zendframework/zend-config-aggregator": "^1.0",

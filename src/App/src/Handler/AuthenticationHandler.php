@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Handler;
 
+use App\Common\Authentication\AuthenticationService;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -12,6 +13,12 @@ use Zend\Stdlib\Parameters;
 
 class AuthenticationHandler implements RequestHandlerInterface
 {
+    private $authService;
+
+    public function __construct(AuthenticationService $authService) {
+        $this->authService = $authService;
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         // Filtering console arguments out from POST query.
@@ -23,13 +30,26 @@ class AuthenticationHandler implements RequestHandlerInterface
             ])
         ));
 
+        if (empty($args['username']) or empty($args['password'])) {
+            $json = new JsonResponse(
+                ['Incorrect credentials provided'],
+                StatusCodeInterface::STATUS_UNAUTHORIZED
+            );
+        } else {
+            $user = $this->authService->authenticateUser($args['username'], $args['password']);
 
-
-        $json = new JsonResponse(
-            ['jwt' => '$user->getJwt()'],
-
-            StatusCodeInterface::STATUS_OK
-        );
+            if ($user) {
+                $json = new JsonResponse(
+                    ['jwt' => $user->getJwt()],
+                    StatusCodeInterface::STATUS_OK
+                );
+            } else {
+                $json = new JsonResponse(
+                    ['Incorrect credentials provided'],
+                    StatusCodeInterface::STATUS_UNAUTHORIZED
+                );
+            }
+        }
 
         return $json;
     }

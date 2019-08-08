@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Common\Authentication\JwtAuthenticationMiddleware;
 use App\Handler\AuthenticationHandler;
-use App\Common\Authentication\AuthenticationMiddleware;
+use App\Handler\WeekHandler;
 use Psr\Container\ContainerInterface;
 use Zend\Expressive\Application;
 use Zend\Expressive\MiddlewareFactory;
@@ -12,22 +13,20 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/', App\Handler\HomePageHandler::class, 'home');
     $app->get('/api/ping', App\Handler\PingHandler::class, 'api.ping');
 
-    $app->post(
-        '/api/rest/v1/authentication',
-        [
-            AuthenticationMiddleware::class,
-            AuthenticationHandler::class,
-        ],
-        'authentication'
-    );
-
-    // Send a Kpi report by email
-    $app->post(
-        '/api/rest/v1/kpi-batch-email',
+    $app->get(
+        '/api/rest/v1/week',
         [
             JwtAuthenticationMiddleware::class,
-            AuthorizationMiddleware::class,
-            KpiBatchEmailHandler::class,
-        ]
+            // TODO add authorization which test existing user
+            WeekHandler::class,
+        ],
+        'week'
     );
+
+    $app->post(
+        '/api/rest/v1/signin',
+        AuthenticationHandler::class,
+        'signin'
+    );
+
 };
