@@ -11,6 +11,19 @@ return [
     // `composer clear-config-cache`.
     ConfigAggregator::ENABLE_CACHE => true,
 
+    'db_auth' => [
+        'dbname'         => 'common',
+        'driver'         => 'pdo_mysql',
+        'driver_options' => [
+            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES UTF8",
+        ],
+        'database' => 'common',
+        'hostname' => 'localhost:3306',
+        'password' => '!!root!!',
+        'username' => 'root',
+    ],
+
+
     // Enable debugging; typically used to provide debugging information within templates.
     'debug' => false,
 
