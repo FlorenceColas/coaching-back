@@ -10,6 +10,10 @@ use App\Common\Authentication\JwtAuthenticationMiddleware;
 use App\Common\Authentication\JwtAuthenticationMiddlewareFactory;
 use App\Handler\AuthenticationHandler;
 use App\Handler\AuthenticationHandlerFactory;
+use App\Handler\CurrentUserHandler;
+use App\Handler\CurrentUserHandlerFactory;
+use App\Handler\RefreshTokenHandler;
+use App\Handler\RefreshTokenHandlerFactory;
 
 class ConfigProvider
 {
@@ -25,7 +29,9 @@ class ConfigProvider
 
                     AuthenticationService::class      => AuthenticationServiceFactory::class,
                     AuthenticationHandler::class => AuthenticationHandlerFactory::class,
+                    CurrentUserHandler::class => CurrentUserHandlerFactory::class,
                     JwtAuthenticationMiddleware::class => JwtAuthenticationMiddlewareFactory::class,
+                    RefreshTokenHandler::class => RefreshTokenHandlerFactory::class,
                 ],
                 'invokables' => [
                     Handler\PingHandler::class => Handler\PingHandler::class,

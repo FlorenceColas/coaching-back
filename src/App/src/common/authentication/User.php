@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Common\Authentication;;
 
 use Firebase\JWT\JWT;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Db\Sql\Sql;
 use Zend\Expressive\Authentication\UserInterface;
 
 final class User implements UserInterface
@@ -19,7 +17,6 @@ final class User implements UserInterface
     private $exp;
     private $iat;
     private $roles;
-    private $secretKey;
     private $username;
 
     public function __construct(
@@ -29,38 +26,16 @@ final class User implements UserInterface
         array $roles = []
     )
     {
+        $time = time();
         $this->config   = $config;
-        $this->iat      = time();
-        $this->exp      = $this->iat + $this->config['jwt']['expiration'];
+        $this->iat      = $time;
+        $this->exp      = $time + $this->config['jwt']['expiration'];
         $this->username = $usernameOrJwt;
         $this->roles    = $roles;
         $this->details  = [
             'name' => $details['name'] ?? '',
             'uid'  => $details['uid'] ?? '',
         ];
-    }
-
-    public function createJwtRecord(DbAdapter $authAdapter)
-    {
-        $this->secretKey = $this->getRandomSalt();
-        $jwt = $this->getJwt();
-
-        $sql = new Sql($authAdapter);
-
-        $insert = $sql->insert('jwt')
-            ->columns([
-                'jwt',
-                'secret_key',
-                'status',
-            ])
-            ->values([
-                $jwt,
-                $this->secretKey,
-                self::JWT_STATUS_ENABLED
-            ]);
-
-        $insert = $sql->buildSqlString($insert);
-        $authAdapter->query($insert, DbAdapter::QUERY_MODE_EXECUTE);
     }
 
     public function getDetail(string $name, $default = null)
@@ -93,7 +68,7 @@ final class User implements UserInterface
                 'roles'    => $this->roles,
                 'details'  => $this->details,
             ],
-            $this->secretKey,
+            $this->config['jwt']['key'],
             $this->config['jwt']['allowed_algs'][0]
         );
 

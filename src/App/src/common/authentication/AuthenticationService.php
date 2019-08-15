@@ -3,13 +3,13 @@
 namespace App\Common\Authentication;
 
 use Zend\Authentication\Adapter\AdapterInterface;
-use Zend\Authentication\AuthenticationService as ZendAuthenticationService;
 use Zend\Authentication\Adapter\DbTable\CredentialTreatmentAdapter;
+use Zend\Authentication\Exception\RuntimeException;
 use Zend\Db\Adapter\Adapter as DbAdapter;
 use Zend\Db\Sql\Join;
 use Zend\Db\Sql\Sql;
 
-class AuthenticationService extends ZendAuthenticationService implements AdapterInterface
+class AuthenticationService implements AdapterInterface
 {
     const ROLE_COACH   = 'coach';
     const ROLE_ATHLETE = 'athelete';
@@ -18,6 +18,7 @@ class AuthenticationService extends ZendAuthenticationService implements Adapter
     const USER_STATUS_DISABLED = 0;
     const USER_STATUS_ENABLED  = 1;
 
+    protected $adapter;
     protected $authAdapter;
     protected $config;
 
@@ -43,12 +44,12 @@ class AuthenticationService extends ZendAuthenticationService implements Adapter
         );
         $dbTableAuthAdapter->getDbSelect()->where('status = ' . self::USER_STATUS_ENABLED);
 
-        $this->setAdapter($dbTableAuthAdapter);
+        $this->adapter = $dbTableAuthAdapter;
     }
 
-    public function authenticateUser(string $username, string $password): User
+    public function authenticateUser(string $username, string $password)
     {
-        $this->getAdapter()
+        $this->adapter
             ->setIdentity($username)
             ->setCredential($password);
 
@@ -99,8 +100,6 @@ class AuthenticationService extends ZendAuthenticationService implements Adapter
                 $roles
             );
 
-            $userJwt->createJwtRecord($this->authAdapter);
-
             $update = $sql->update('users')
                 ->set(['lastconnection' => (new \DateTime())->format('Y-m-d H:i:s')])
                 ->where(['username' => $username]);
@@ -110,5 +109,16 @@ class AuthenticationService extends ZendAuthenticationService implements Adapter
 
             return $userJwt;
         }
+    }
+
+    public function authenticate()
+    {
+        if (! $this->adapter) {
+            throw new RuntimeException(
+                'An adapter must be set or passed prior to calling authenticate()'
+            );
+        }
+
+        return $this->adapter->authenticate();
     }
 }

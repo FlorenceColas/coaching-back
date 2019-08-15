@@ -49,7 +49,7 @@ return [
     ],
 
     'jwt' => [
-        'expiration' => 900000, //15'
+        'expiration' => 900, //15'
     ],
 
     'zend-expressive' => [

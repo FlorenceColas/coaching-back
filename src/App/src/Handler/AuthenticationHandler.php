@@ -32,7 +32,7 @@ class AuthenticationHandler implements RequestHandlerInterface
 
         if (empty($args['username']) or empty($args['password'])) {
             $json = new JsonResponse(
-                ['Incorrect credentials provided'],
+                ['Incorrect credentials provided', $args['username']],
                 StatusCodeInterface::STATUS_UNAUTHORIZED
             );
         } else {
@@ -40,12 +40,12 @@ class AuthenticationHandler implements RequestHandlerInterface
 
             if ($user) {
                 $json = new JsonResponse(
-                    ['jwt' => $user->getJwt()],
+                    $user->getJwt(),
                     StatusCodeInterface::STATUS_OK
                 );
             } else {
                 $json = new JsonResponse(
-                    ['Incorrect credentials provided'],
+                    ['Supplied credentials are invalid'],
                     StatusCodeInterface::STATUS_UNAUTHORIZED
                 );
             }

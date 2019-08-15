@@ -1,4 +1,11 @@
+<ifModule mod_headers.c>
+#  Header set Access-Control-Allow-Origin "http://coaching-back.localhost"
+  Header set Access-Control-Allow-Origin "http://localhost:4200"
+  Header set Access-Control-Allow-Headers "Content-type, authorization"
+</ifModule>
+
 RewriteEngine On
+
 # The following rule allows authentication to work with fast-cgi
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # The following rule tells Apache that if the requested filename

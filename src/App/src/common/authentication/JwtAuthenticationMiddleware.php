@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Common\Authentication;
 
-use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -36,9 +35,7 @@ class JwtAuthenticationMiddleware implements MiddlewareInterface
                 $this->config['jwt']['allowed_algs']
             );
         } catch (\Exception $e) {
-            if (get_class($e) === ExpiredException::class) {
-                return $handler->handle($request);
-            }
+            return $handler->handle($request);
         }
 
         $identity = new User(
