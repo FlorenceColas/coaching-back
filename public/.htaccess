@@ -1,5 +1,4 @@
 <ifModule mod_headers.c>
-#  Header set Access-Control-Allow-Origin "http://coaching-back.localhost"
   Header set Access-Control-Allow-Origin "http://localhost:4200"
   Header set Access-Control-Allow-Headers "Content-type, authorization"
 </ifModule>

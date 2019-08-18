@@ -14,6 +14,8 @@ use App\Handler\CurrentUserHandler;
 use App\Handler\CurrentUserHandlerFactory;
 use App\Handler\RefreshTokenHandler;
 use App\Handler\RefreshTokenHandlerFactory;
+use App\Handler\WeekActivitiesHandler;
+use App\Handler\WeekActivitiesHandlerFactory;
 
 class ConfigProvider
 {
@@ -22,19 +24,16 @@ class ConfigProvider
         return [
             'dependencies' => [
                 'factories' => [
-
-                    Handler\HomePageHandler::class => Handler\HomePageHandlerFactory::class,
-//                    JwtAuthenticationMiddleware::class       => JwtAuthenticationMiddlewareFactory::class,
-//                    JwtRecentAuthenticationMiddleware::class => JwtRecentAuthenticationMiddlewareFactory::class,
-
-                    AuthenticationService::class      => AuthenticationServiceFactory::class,
-                    AuthenticationHandler::class => AuthenticationHandlerFactory::class,
-                    CurrentUserHandler::class => CurrentUserHandlerFactory::class,
+                    Handler\HomePageHandler::class     => Handler\HomePageHandlerFactory::class,
+                    AuthenticationService::class       => AuthenticationServiceFactory::class,
+                    AuthenticationHandler::class       => AuthenticationHandlerFactory::class,
+                    CurrentUserHandler::class          => CurrentUserHandlerFactory::class,
                     JwtAuthenticationMiddleware::class => JwtAuthenticationMiddlewareFactory::class,
-                    RefreshTokenHandler::class => RefreshTokenHandlerFactory::class,
+                    RefreshTokenHandler::class         => RefreshTokenHandlerFactory::class,
+                    WeekActivitiesHandler::class       => WeekActivitiesHandlerFactory::class,
                 ],
                 'invokables' => [
-                    Handler\PingHandler::class => Handler\PingHandler::class,
+                    Handler\PingHandler::class   => Handler\PingHandler::class,
                 ],
             ],
 

@@ -40,7 +40,7 @@ class JwtAuthenticationMiddleware implements MiddlewareInterface
 
         $identity = new User(
             $this->config,
-            $user->identity,
+            $user->username,
             (array) $user->roles,
             (array) $user->details + ['exp' => $user->exp]
         );
