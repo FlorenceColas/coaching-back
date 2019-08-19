@@ -87,19 +87,20 @@ class WeekActivitiesHandler implements RequestHandlerInterface
         foreach ($activities as $activity) {
             $day = date('N', strtotime($activity['activity_date']));
             $activitiesResult[] = [
-                'id' => $activity['id'],
-                'athleteUserId' => $args['athlete'],
-                'categoryId' => $activity['name'],
-                'typeId' => $activity['types_id'],
-                'activityDay' => strtotime($activity['activity_date']) * 1000,
-                'dayOfWeek' => $day,
-                'plannedContent' => $activity['planned_content'],
-                'plannedDistance' => $activity['planned_distance'],
-                'plannedTime' => $activity['planned_time'],
-                'realisedContent' => $activity['realised_content'],
+                'id'               => $activity['id'],
+                'athleteUserId'    => $args['athlete'],
+                'categoryId'       => $activity['name'],
+                'typeId'           => $activity['types_id'],
+                'activityDay'      => strtotime($activity['activity_date']) * 1000,
+                'dayOfWeek'        => $day,
+                'planned'          => $activity['planned'],
+                'plannedContent'   => $activity['planned_content'],
+                'plannedDistance'  => $activity['planned_distance'],
+                'plannedTime'      => $activity['planned_time'],
+                'realisedContent'  => $activity['realised_content'],
                 'realisedDistance' => $activity['realised_distance'],
-                'realisedTime' => $activity['realised_time'],
-                'state' => $activity['state'],
+                'realisedTime'     => $activity['realised_time'],
+                'state'            => $activity['state'],
             ];
         }
 
