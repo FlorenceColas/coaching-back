@@ -58,7 +58,6 @@ class WeekActivitiesHandler implements RequestHandlerInterface
             ->columns(
                 [
                     'id',
-                    'categories_id',
                     'types_id',
                     'activity_date',
                     'planned',
@@ -72,12 +71,17 @@ class WeekActivitiesHandler implements RequestHandlerInterface
                 ]
             )
             ->from(['A' => 'activities'])
+            ->join(['B' => 'categories'],
+                    'B.id = A.categories_id',
+                    ['name']
+            )
             ->where([
                 'athletes_users_id' => $args['athlete'],
                 new Expression("activity_date >= '$weekStart' AND activity_date <= '$weekEnd'")
             ]);
 
         $statement = $sql->prepareStatementForSqlObject($select);
+        $str = $sql->buildSqlString($select);
         $activities = iterator_to_array($statement->execute());
 
         foreach ($activities as $activity) {
@@ -85,7 +89,7 @@ class WeekActivitiesHandler implements RequestHandlerInterface
             $activitiesResult[] = [
                 'id' => $activity['id'],
                 'athleteUserId' => $args['athlete'],
-                'categoryId' => $activity['categories_id'],
+                'categoryId' => $activity['name'],
                 'typeId' => $activity['types_id'],
                 'activityDay' => strtotime($activity['activity_date']) * 1000,
                 'dayOfWeek' => $day,
@@ -99,6 +103,12 @@ class WeekActivitiesHandler implements RequestHandlerInterface
             ];
         }
 
-        return new JsonResponse($activitiesResult, StatusCodeInterface::STATUS_OK);
+        $response = [
+            'week' => (int)$args['week'],
+            'year' => (int)$args['year'],
+            'activities' => $activitiesResult,
+        ];
+
+        return new JsonResponse($response, StatusCodeInterface::STATUS_OK);
     }
 }
