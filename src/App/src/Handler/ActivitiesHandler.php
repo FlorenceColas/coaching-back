@@ -82,12 +82,13 @@ class ActivitiesHandler implements RequestHandlerInterface
 
     protected function put(ServerRequestInterface $request): ResponseInterface
     {
-//        $data = (array)json_decode(file_get_contents("php://input"));
-        $data = $request->getParsedBody();
+        $data = (array)json_decode(file_get_contents("php://input"));
+//        $data = $request->getParsedBody();
+        $id   = $request->getAttribute('id');
 
-        $key = $this->model->updateActivity($data);
+        $res = $this->model->updateActivity($id, $data);
 
-        return new JsonResponse(['key' => $key], StatusCodeInterface::STATUS_ACCEPTED);
+        return new JsonResponse(null, StatusCodeInterface::STATUS_ACCEPTED);
     }
 
     protected function delete(ServerRequestInterface $request): ResponseInterface

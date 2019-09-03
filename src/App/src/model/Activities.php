@@ -206,19 +206,21 @@ class Activities
         return $activitiesResult;
     }
 
-    public function updateActivity(string $key, iterable $data)
+    public function updateActivity(string $id, array $data): bool
     {
-        $data = array_intersect_key(
-            (array)$data,
-            array_flip([
-                'value',
-            ])
-        );
-
         $sql = new Sql($this->dbAdapter);
-        $update = $sql->update('config')
-            ->set(['value' => $data['value']])
-            ->where(['key' => $key]);
+        $update = $sql->update('activities')
+            ->set([
+                'athletes_users_id' => $data['athleteUserId'],
+                'categories_id' => $this->categories[$data['categoryId']],
+                'types_id' => $data['activityType'],
+                'activity_date' => date('Y-m-d',(int)round($data['activityDay'] / 1000, 0)),
+                'planned' => $data['planned'],
+                'planned_content' => $data['plannedContent'],
+                'planned_distance' => $data['plannedDistance'],
+                'planned_time' => $data['plannedTime'],
+            ])
+            ->where(['id' => $id]);
 
         $update = $sql->buildSqlString($update);
 
