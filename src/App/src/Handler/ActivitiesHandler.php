@@ -1,0 +1,101 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Handler;
+
+use App\Model\Activities;
+use Fig\Http\Message\StatusCodeInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Zend\Db\Adapter\Adapter as DbAdapter;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Stdlib\Parameters;
+
+class ActivitiesHandler implements RequestHandlerInterface
+{
+    protected $config;
+    protected $dbAdapter;
+    protected $model;
+
+    public function __construct (array $config, Activities $model)
+    {
+        $this->config = $config;
+        $this->model  = $model;
+
+        $this->dbAdapter = new DbAdapter([
+            'database'       => $config['db']['database'],
+            'driver'         => $config['db']['driver'],
+            'driver_options' => $config['db']['driver_options'],
+            'hostname'       => $config['db']['hostname'],
+            'password'       => $config['db']['password'],
+            'username'       => $config['db']['username'],
+        ]);
+
+    }
+
+    private function get(ServerRequestInterface $request): ResponseInterface
+    {
+        $key = $request->getAttribute('key', false);
+        $params = new Parameters($request->getAttributes());
+
+        if ($key) {
+            $data = $this->model->getActivity($key, $params);
+        } else {
+            $data = $this->model->getActivities($params);
+        }
+
+        $response = [
+            'week' => (int)$params['week'],
+            'year' => (int)$params['year'],
+            'activities' => $data,
+        ];
+
+        return new JsonResponse($response, StatusCodeInterface::STATUS_OK);
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        switch ($request->getMethod()) {
+            case 'GET':
+                return $this->get($request);
+            case 'DELETE':
+                return $this->delete($request);
+            case 'POST':
+                return $this->post($request);
+            case 'PUT':
+                return $this->put($request);
+            default:
+                throw new \RuntimeException('Method not implemented');
+        }
+    }
+
+    protected function post(ServerRequestInterface $request): ResponseInterface
+    {
+//        $data = (array)json_decode(file_get_contents("php://input"));
+        $data = $request->getParsedBody();
+
+        $key = $this->model->createActivity($data);
+
+        return new JsonResponse(['key' => $key], StatusCodeInterface::STATUS_CREATED);
+    }
+
+    protected function put(ServerRequestInterface $request): ResponseInterface
+    {
+//        $data = (array)json_decode(file_get_contents("php://input"));
+        $data = $request->getParsedBody();
+
+        $key = $this->model->updateActivity($data);
+
+        return new JsonResponse(['key' => $key], StatusCodeInterface::STATUS_ACCEPTED);
+    }
+
+    protected function delete(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = $request->getAttribute('id', false);
+
+        $this->model->deleteActivity($id);
+
+        return new JsonResponse(null, StatusCodeInterface::STATUS_ACCEPTED);
+    }
+}
