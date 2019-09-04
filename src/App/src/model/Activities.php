@@ -46,10 +46,9 @@ class Activities
 
     public function createActivity(array $data)
     {
-        $sql = new Sql($this->dbAdapter);
-
-        $insert = $sql->insert('activities')
-            ->columns([
+        $data = array_intersect_key(
+            (array)$data,
+            array_flip([
                 'athletes_users_id',
                 'categories_id',
                 'types_id',
@@ -58,22 +57,31 @@ class Activities
                 'planned_content',
                 'planned_distance',
                 'planned_time',
+                'realised_content',
+                'realised_distance',
+                'realised_time',
+                'state',
             ])
-            ->values([
-                $data['athleteUserId'],
-                $this->categories[$data['categoryId']],
-                $data['activityType'],
-                date('Y-m-d',(int)round($data['activityDay'] / 1000, 0)),
-                $data['planned'],
-                $data['plannedContent'],
-                $data['plannedDistance'],
-                $data['plannedTime'],
-/*                $data['realisedContent'],
-                $data['realisedDistance'],
-                $data['realisedTime'],
-                $data['state'],
-*/
-            ]);
+        );
+
+        if ($data['categories_id']) {
+            $data['categories_id'] = $this->categories[$data['categories_id']];
+        }
+
+        if ($data['activity_date']) {
+            $data['activity_date'] = date('Y-m-d',(int)round($data['activity_date'] / 1000, 0));
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value == 'null') {
+                $data[$key] = null;
+            }
+        }
+
+        $sql = new Sql($this->dbAdapter);
+
+        $insert = $sql->insert('activities')
+            ->values($data);
 
         $insert = $sql->buildSqlString($insert);
 
@@ -208,18 +216,41 @@ class Activities
 
     public function updateActivity(string $id, array $data): bool
     {
+        $data = array_intersect_key(
+            (array)$data,
+            array_flip([
+                'athletes_users_id',
+                'categories_id',
+                'types_id',
+                'activity_date',
+                'planned',
+                'planned_content',
+                'planned_distance',
+                'planned_time',
+                'realised_content',
+                'realised_distance',
+                'realised_time',
+                'state',
+            ])
+        );
+
+        if ($data['categories_id']) {
+            $data['categories_id'] = $this->categories[$data['categories_id']];
+        }
+
+        if ($data['activity_date']) {
+            $data['activity_date'] = date('Y-m-d',(int)round($data['activity_date'] / 1000, 0));
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value == 'null') {
+                $data[$key] = null;
+            }
+        }
+
         $sql = new Sql($this->dbAdapter);
         $update = $sql->update('activities')
-            ->set([
-                'athletes_users_id' => $data['athleteUserId'],
-                'categories_id' => $this->categories[$data['categoryId']],
-                'types_id' => $data['activityType'],
-                'activity_date' => date('Y-m-d',(int)round($data['activityDay'] / 1000, 0)),
-                'planned' => $data['planned'],
-                'planned_content' => $data['plannedContent'],
-                'planned_distance' => $data['plannedDistance'],
-                'planned_time' => $data['plannedTime'],
-            ])
+            ->set($data)
             ->where(['id' => $id]);
 
         $update = $sql->buildSqlString($update);

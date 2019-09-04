@@ -72,7 +72,6 @@ class ActivitiesHandler implements RequestHandlerInterface
 
     protected function post(ServerRequestInterface $request): ResponseInterface
     {
-//        $data = (array)json_decode(file_get_contents("php://input"));
         $data = $request->getParsedBody();
 
         $key = $this->model->createActivity($data);
@@ -82,8 +81,7 @@ class ActivitiesHandler implements RequestHandlerInterface
 
     protected function put(ServerRequestInterface $request): ResponseInterface
     {
-        $data = (array)json_decode(file_get_contents("php://input"));
-//        $data = $request->getParsedBody();
+        $data = $request->getParsedBody();
         $id   = $request->getAttribute('id');
 
         $res = $this->model->updateActivity($id, $data);
