@@ -3,67 +3,84 @@ declare(strict_types=1);
 
 namespace App\Handler;
 
+use App\Model\Athletes;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Db\Sql\Predicate\Expression;
-use Zend\Db\Sql\Sql;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Stdlib\Parameters;
 
 class AthletesHandler implements RequestHandlerInterface
 {
     protected $config;
-    protected $dbAdapter;
+    protected $model;
 
-    public function __construct (array $config)
+    public function __construct (array $config, Athletes $model)
     {
         $this->config = $config;
+        $this->model  = $model;
+    }
 
-        $this->dbAdapter = new DbAdapter([
-            'database'       => $config['db']['database'],
-            'driver'         => $config['db']['driver'],
-            'driver_options' => $config['db']['driver_options'],
-            'hostname'       => $config['db']['hostname'],
-            'password'       => $config['db']['password'],
-            'username'       => $config['db']['username'],
-        ]);
+    private function get(ServerRequestInterface $request): ResponseInterface
+    {
+        $key = $request->getAttribute('key', false);
+        $params = new Parameters($request->getAttributes());
 
+        if ($key) {
+            $data = $this->model->getAthlete($key, $params);
+        } else {
+            $data = $this->model->getAthletes($params);
+        }
+
+        $response = [
+            'athletes' => $data,
+        ];
+
+        return new JsonResponse($response, StatusCodeInterface::STATUS_OK);
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $args = new Parameters(array_intersect_key(
-            $request->getAttributes(),
-            array_flip([
-                'coach',
-            ])
-        ));
+        switch ($request->getMethod()) {
+            case 'GET':
+                return $this->get($request);
+            case 'DELETE':
+                return $this->delete($request);
+            case 'POST':
+                return $this->post($request);
+            case 'PUT':
+                return $this->put($request);
+            default:
+                throw new \RuntimeException('Method not implemented');
+        }
+    }
 
-        $sql = new Sql($this->dbAdapter);
-        $select = $sql->select()
-            ->columns(
-                [
-                    'id' => 'users_id',
-                    'name',
-                ]
-            )
-            ->from(['A' => 'athletes'])
-            ->join(
-                ['B' => 'rel_coach_athletes'],
-                'B.athletes_users_id = A.users_id',
-                []
-            )
-            ->where([
-                'coach_users_id' => (int)$args['coach']
-            ]);
+    protected function post(ServerRequestInterface $request): ResponseInterface
+    {
+        $data = $request->getParsedBody();
 
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $str = $sql->buildSqlString($select);
-        $activities = iterator_to_array($statement->execute());
+        $key = $this->model->createAthlete($data);
 
-        return new JsonResponse($activities, StatusCodeInterface::STATUS_OK);
+        return new JsonResponse(['key' => $key], StatusCodeInterface::STATUS_CREATED);
+    }
+
+    protected function put(ServerRequestInterface $request): ResponseInterface
+    {
+        $data = $request->getParsedBody();
+        $id   = $request->getAttribute('id');
+
+        $res = $this->model->updateAthlete($id, $data);
+
+        return new JsonResponse(null, StatusCodeInterface::STATUS_ACCEPTED);
+    }
+
+    protected function delete(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = $request->getAttribute('id', false);
+
+        $this->model->deleteAthlete($id);
+
+        return new JsonResponse(null, StatusCodeInterface::STATUS_ACCEPTED);
     }
 }

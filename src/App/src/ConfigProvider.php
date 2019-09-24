@@ -21,6 +21,8 @@ use App\Handler\ActivitiesHandlerFactory;
 use App\Model\Activities;
 use App\Model\ActivitiesFactory;
 use App\Common\Middleware\OverrideHttpMethodMiddleware;
+use App\Model\Athletes;
+use App\Model\AthletesFactory;
 
 class ConfigProvider
 {
@@ -31,6 +33,7 @@ class ConfigProvider
                 'factories' => [
                     Handler\HomePageHandler::class     => Handler\HomePageHandlerFactory::class,
                     Activities::class                  => ActivitiesFactory::class,
+                    Athletes::class                    => AthletesFactory::class,
                     AthletesHandler::class             => AthletesHandlerFactory::class,
                     AuthenticationService::class       => AuthenticationServiceFactory::class,
                     AuthenticationHandler::class       => AuthenticationHandlerFactory::class,

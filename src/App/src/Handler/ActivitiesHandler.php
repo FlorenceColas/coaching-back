@@ -8,30 +8,18 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Zend\Db\Adapter\Adapter as DbAdapter;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Stdlib\Parameters;
 
 class ActivitiesHandler implements RequestHandlerInterface
 {
     protected $config;
-    protected $dbAdapter;
     protected $model;
 
     public function __construct (array $config, Activities $model)
     {
         $this->config = $config;
         $this->model  = $model;
-
-        $this->dbAdapter = new DbAdapter([
-            'database'       => $config['db']['database'],
-            'driver'         => $config['db']['driver'],
-            'driver_options' => $config['db']['driver_options'],
-            'hostname'       => $config['db']['hostname'],
-            'password'       => $config['db']['password'],
-            'username'       => $config['db']['username'],
-        ]);
-
     }
 
     private function get(ServerRequestInterface $request): ResponseInterface
